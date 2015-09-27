@@ -1,0 +1,137 @@
+---
+title: 'Machine learning on Human activity Recognition: Weight Lifting Exercises'
+author: "ISSEPELA"
+date: "Monday, September 21, 2015"
+output: html_document
+---
+
+##Summary
+This work is part of the machine learning Coursera Course
+This document about Human Activity Recognition describes the use of a machine learning algorithm on a dataset available online containing information collected by different accelerometers weared by 6 persons (on the belt, forearm, arm, and dumbell) while performing weight lifting in different way. The objective is to identify the movement.
+
+cit: Velloso, E.; Bulling, A.; Gellersen, H.; Ugulino, W.; Fuks, H. Qualitative Activity Recognition of Weight Lifting Exercises. Proceedings of 4th International Conference in Cooperation with SIGCHI (Augmented Human 13) . Stuttgart, Germany: ACM SIGCHI, 2013.
+[Read more](http://groupware.les.inf.puc-rio.br/har#ixzz3mqgGqLDw)
+
+##Background:
+Six young health participants were asked to perform one set of 10 repetitions of the Unilateral Dumbbell Biceps Curl in five different fashions: exactly according to the specification (Class A), throwing the elbows to the front (Class B), lifting the dumbbell only halfway (Class C), lowering the dumbbell only halfway (Class D) and throwing the hips to the front (Class E).Class A corresponds to the specified execution of the exercise, while the other 4 classes correspond to common mistakes
+
+##Data loading and cleansing
+The dataset is available online: [https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv](https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv)  
+-After having downloaded into the current working directory it must be loaded into R.  
+-As there are lot of NA values, all the columns in which NA values are more than 50% are filtered out.  
+-Also the first columns with the header of the measure (ID, name, date..) are removed.  
+-Check for near zero covariate or near zero variance givesnegative result.  
+```{r cache=TRUE,collapse = TRUE,warning=FALSE}
+library(caret);library('corrplot')
+#load data
+trainingDS<-read.csv("pml-training.csv",na.strings = c("#DIV/0!","NA"))
+#distribution of NA
+hist(colSums(is.na(trainingDS))/nrow(trainingDS),xlab="% of NA",main="distribution of NA across variables",col="green")
+#removing variables with mre than 50% NA
+trainingDS <- trainingDS[, colSums(is.na(trainingDS)) < nrow(trainingDS)/2]
+#removing first columns
+trainingDS <- trainingDS[, -(1:7)]
+#test for near zero variance
+nsv<-nearZeroVar(trainingDS,saveMetrics = TRUE)
+table(nsv$nzv,nsv$zeroVar)
+```
+
+Here is the list of predictors (plus the classe that we want to predict):
+```{r cache=TRUE,collapse = TRUE,warning=FALSE}
+names(trainingDS)
+```
+
+##Exploratory data analysis on predictors
+We have 52 predictors, divided in 4 groups of 13 given by the accelerometers of the 4 different devices.  
+A simple plot of one group of variables (given by the device on the belt) colored by class give the impression that there is not a simple relation between the variables and the class. For this reason, linear model and generalized linear model will not be taken into consideration.
+```{r cache=TRUE,collapse = TRUE,warning=FALSE,fig.widht=18,dpi=200}
+par("mar"=c(2,2,2,2))
+par(mfrow = c(5, 3))
+col <- grep("belt", names(trainingDS))
+for (i in 1:length(col)){
+    trainingDS<-trainingDS[ order(trainingDS[,53], trainingDS[,col[i]]), ]
+    plot(trainingDS[, col[i]], col = trainingDS$classe, main = names(trainingDS)[col[i]])   
+}
+```
+
+The variables have some degree of correlation, expecially inside the same device.  
+For this reason a preprocess of Principal Component Analysis will be perfomed before training our prediction models.
+```{r cache=TRUE,collapse = TRUE,warning=FALSE,fig.widht=18,dpi=200}
+M<-(cor(trainingDS[,-53]))
+diag(M)<-0
+corrplot(M, cl.lim=c(-1,1),tl.cex=.5)  
+```
+
+##Machine learning
+
+###Trainig and probing dataset preparation
+The dataset will be split in 2 in order for cross validation and out of the sample error estimation.  
+For reproducebility a seed fill be fixed
+```{r cache=TRUE,collapse = TRUE,warning=FALSE}
+set.seed(1111)
+inTrain<-createDataPartition(y=trainingDS$classe,p=.75,list=FALSE)
+training<-trainingDS[inTrain,]
+probing<-trainingDS[-inTrain,]
+dim(training);dim(testing)
+```
+
+###Model training
+For comparison, 3 different training methods will be tested  
+First we will try predicting with trees
+```{r cache=TRUE,collapse = TRUE,warning=FALSE}
+system.time(modFit_rpart<-train(classe~.,method="rpart",data=training,preProcess=c("center","scale","pca")))
+modFit_rpart$finalModel
+```
+the in-sample error gives an accuracy of  
+
+The second model is random forest
+```{r cache=TRUE,collapse = TRUE,warning=FALSE}
+system.time(modFit_rf<-train(classe~.,mehtod="rf",data=training,preProcess=c("center","scale","pca")))
+modFit_rf$finalModel
+```
+the in-sample error gives an accuracy of  
+
+The third model is boostrap with trees
+```{r cache=TRUE,collapse = TRUE,warning=FALSE}
+system.time(modFit_gmb<-train(classe~.,mehtod="gmb",data=training,preProcess=c("center","scale","pca")))
+modFit_gmb$finalModel
+```
+the in-sample error gives an accuracy of  
+
+###Model evaluation
+The probing dataset is used to cross validate and calculate the out-of-sample error:
+```{r cache=TRUE,collapse = TRUE,warning=FALSE}
+prob<-predict(modFit_rf,probing)
+confusionMatrix(probing$classe,prob)
+```
+The accuracy is
+and the most important variables are:
+```{r cache=TRUE,collapse = TRUE,warning=FALSE}
+varImp(modFit_rf)
+```
+
+
+###Generate prediction for submission on test dataset
+The machine learning algorithm will be applied to the 20 test cases available in the test data [https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv](https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv)
+```{r cache=TRUE,collapse = TRUE,warning=FALSE}
+#import test data set
+testingDS<-read.csv("pml-testing.csv",na.strings = c("#DIV/0!","NA"))
+#generate prediction
+pred<-predict(modFit_rf,testingDS)
+pred
+
+#generate files for submission
+pml_write_files = function(x){
+  n = length(x)
+  for(i in 1:n){
+    filename = paste0("problem_id_",i,".txt")
+    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+  }
+}
+pml_write_files(pred)
+```
+
+
+
+
+
