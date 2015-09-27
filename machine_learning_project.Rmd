@@ -1,7 +1,6 @@
 ---
 title: 'Machine learning on Human activity Recognition: Weight Lifting Exercises'
 author: "ISSEPELA"
-date: "Monday, September 21, 2015"
 output: html_document
 ---
 
@@ -72,7 +71,7 @@ set.seed(1111)
 inTrain<-createDataPartition(y=trainingDS$classe,p=.75,list=FALSE)
 training<-trainingDS[inTrain,]
 probing<-trainingDS[-inTrain,]
-dim(training);dim(testing)
+dim(training);dim(probing)
 ```
 
 ###Model training
@@ -80,23 +79,24 @@ For comparison, 3 different training methods will be tested
 First we will try predicting with trees
 ```{r cache=TRUE,collapse = TRUE,warning=FALSE}
 system.time(modFit_rpart<-train(classe~.,method="rpart",data=training,preProcess=c("center","scale","pca")))
-modFit_rpart$finalModel
+modFit_rpart
 ```
-the in-sample error gives an accuracy of  
+the in-sample error gives a poor accuracy of 0.38   
 
 The second model is random forest
 ```{r cache=TRUE,collapse = TRUE,warning=FALSE}
-system.time(modFit_rf<-train(classe~.,mehtod="rf",data=training,preProcess=c("center","scale","pca")))
-modFit_rf$finalModel
+system.time(modFit_rf<-train(classe~.,method="rf",data=training,preProcess=c("center","scale","pca")))
+modFit_rf
 ```
-the in-sample error gives an accuracy of  
+the in-sample error gives an accuracy of 0.95
 
-The third model is boostrap with trees
+The third model is Naive Bayes
 ```{r cache=TRUE,collapse = TRUE,warning=FALSE}
-system.time(modFit_gmb<-train(classe~.,mehtod="gmb",data=training,preProcess=c("center","scale","pca")))
-modFit_gmb$finalModel
+system.time(modFit_nb<-train(classe~.,method="nb",data=training,preProcess=c("center","scale","pca")))
+modFit_nb
 ```
-the in-sample error gives an accuracy of  
+the in-sample error gives an accuracy fo 0.64  
+For accuracy, random forest performed better and it will be used for predictions.
 
 ###Model evaluation
 The probing dataset is used to cross validate and calculate the out-of-sample error:
@@ -104,11 +104,7 @@ The probing dataset is used to cross validate and calculate the out-of-sample er
 prob<-predict(modFit_rf,probing)
 confusionMatrix(probing$classe,prob)
 ```
-The accuracy is
-and the most important variables are:
-```{r cache=TRUE,collapse = TRUE,warning=FALSE}
-varImp(modFit_rf)
-```
+The accuracy on a probing dataset (external of the training dataset) is .98
 
 
 ###Generate prediction for submission on test dataset
@@ -130,8 +126,3 @@ pml_write_files = function(x){
 }
 pml_write_files(pred)
 ```
-
-
-
-
-
