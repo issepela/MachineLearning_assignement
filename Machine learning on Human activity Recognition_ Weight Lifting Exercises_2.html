@@ -141,7 +141,6 @@ img {
 <div id="header">
 <h1 class="title">Machine learning on Human activity Recognition: Weight Lifting Exercises</h1>
 <h4 class="author"><em>ISSEPELA</em></h4>
-<h4 class="date"><em>Monday, September 21, 2015</em></h4>
 </div>
 
 
@@ -220,75 +219,86 @@ img {
 <span class="identifier">inTrain</span><span class="operator">&lt;-</span><span class="identifier">createDataPartition</span><span class="paren">(</span><span class="identifier">y</span><span class="operator">=</span><span class="identifier">trainingDS</span><span class="operator">$</span><span class="identifier">classe</span>,<span class="identifier">p</span><span class="operator">=</span><span class="number">.75</span>,<span class="identifier">list</span><span class="operator">=</span><span class="literal">FALSE</span><span class="paren">)</span>
 <span class="identifier">training</span><span class="operator">&lt;-</span><span class="identifier">trainingDS</span><span class="paren">[</span><span class="identifier">inTrain</span>,<span class="paren">]</span>
 <span class="identifier">probing</span><span class="operator">&lt;-</span><span class="identifier">trainingDS</span><span class="paren">[</span><span class="operator">-</span><span class="identifier">inTrain</span>,<span class="paren">]</span>
-<span class="identifier">dim</span><span class="paren">(</span><span class="identifier">training</span><span class="paren">)</span>;<span class="identifier">dim</span><span class="paren">(</span><span class="identifier">testing</span><span class="paren">)</span>
+<span class="identifier">dim</span><span class="paren">(</span><span class="identifier">training</span><span class="paren">)</span>;<span class="identifier">dim</span><span class="paren">(</span><span class="identifier">probing</span><span class="paren">)</span>
 <span class="comment">## [1] 14718    53</span>
-<span class="comment">## [1]  20 160</span></code></pre>
+<span class="comment">## [1] 4904   53</span></code></pre>
 </div>
 <div id="model-training" class="section level3">
 <h3>Model training</h3>
-<p>For comparison, 3 different training methods will be tested First we will try predicting with trees</p>
-<pre class="r"><code class="r"><span class="identifier">system.time</span><span class="paren">(</span><span class="identifier">modFit_rpart</span><span class="operator">&lt;-</span><span class="identifier">train</span><span class="paren">(</span><span class="identifier">classe</span><span class="operator">~</span>.,<span class="identifier">mehtod</span><span class="operator">=</span><span class="string">"rpart"</span>,<span class="identifier">data</span><span class="operator">=</span><span class="identifier">training</span>,<span class="identifier">preProcess</span><span class="operator">=</span><span class="identifier">c</span><span class="paren">(</span><span class="string">"center"</span>,<span class="string">"scale"</span>,<span class="string">"pca"</span><span class="paren">)</span><span class="paren">)</span><span class="paren">)</span>
+<p>For comparison, 3 different training methods will be tested<br>First we will try predicting with trees</p>
+<pre class="r"><code class="r"><span class="identifier">system.time</span><span class="paren">(</span><span class="identifier">modFit_rpart</span><span class="operator">&lt;-</span><span class="identifier">train</span><span class="paren">(</span><span class="identifier">classe</span><span class="operator">~</span>.,<span class="identifier">method</span><span class="operator">=</span><span class="string">"rpart"</span>,<span class="identifier">data</span><span class="operator">=</span><span class="identifier">training</span>,<span class="identifier">preProcess</span><span class="operator">=</span><span class="identifier">c</span><span class="paren">(</span><span class="string">"center"</span>,<span class="string">"scale"</span>,<span class="string">"pca"</span><span class="paren">)</span><span class="paren">)</span><span class="paren">)</span>
 <span class="comment">##    user  system elapsed </span>
-<span class="comment">## 3265.17   16.66 3288.29</span>
-<span class="identifier">modFit_rpart</span><span class="operator">$</span><span class="identifier">finalModel</span>
+<span class="comment">##   72.88    0.69   74.37</span>
+<span class="identifier">modFit_rpart</span>
+<span class="comment">## CART </span>
 <span class="comment">## </span>
-<span class="comment">## Call:</span>
-<span class="comment">##  randomForest(x = x, y = y, mtry = param$mtry, mehtod = "rpart") </span>
-<span class="comment">##                Type of random forest: classification</span>
-<span class="comment">##                      Number of trees: 500</span>
-<span class="comment">## No. of variables tried at each split: 2</span>
+<span class="comment">## 14718 samples</span>
+<span class="comment">##    52 predictor</span>
+<span class="comment">##     5 classes: 'A', 'B', 'C', 'D', 'E' </span>
 <span class="comment">## </span>
-<span class="comment">##         OOB estimate of  error rate: 2.15%</span>
-<span class="comment">## Confusion matrix:</span>
-<span class="comment">##      A    B    C    D    E class.error</span>
-<span class="comment">## A 4157    9   11    5    3 0.006690562</span>
-<span class="comment">## B   44 2773   25    0    6 0.026334270</span>
-<span class="comment">## C    4   36 2498   25    4 0.026879626</span>
-<span class="comment">## D    5    2   92 2306    7 0.043946932</span>
-<span class="comment">## E    0    9   13   17 2667 0.014412417</span></code></pre>
-<p>the in-sample error gives an accuracy of</p>
+<span class="comment">## Pre-processing: centered, scaled, principal component signal extraction </span>
+<span class="comment">## Resampling: Bootstrapped (25 reps) </span>
+<span class="comment">## Summary of sample sizes: 14718, 14718, 14718, 14718, 14718, 14718, ... </span>
+<span class="comment">## Resampling results across tuning parameters:</span>
+<span class="comment">## </span>
+<span class="comment">##   cp          Accuracy   Kappa      Accuracy SD  Kappa SD  </span>
+<span class="comment">##   0.03151998  0.3825638  0.1758090  0.03434969   0.06222093</span>
+<span class="comment">##   0.06069812  0.3551431  0.1257538  0.02852075   0.05149912</span>
+<span class="comment">##   0.11516187  0.2837717  0.0000000  0.00512526   0.00000000</span>
+<span class="comment">## </span>
+<span class="comment">## Accuracy was used to select the optimal model using  the largest value.</span>
+<span class="comment">## The final value used for the model was cp = 0.03151998.</span></code></pre>
+<p>the in-sample error gives a poor accuracy of 0.38</p>
 <p>The second model is random forest</p>
-<pre class="r"><code class="r"><span class="identifier">system.time</span><span class="paren">(</span><span class="identifier">modFit_rf</span><span class="operator">&lt;-</span><span class="identifier">train</span><span class="paren">(</span><span class="identifier">classe</span><span class="operator">~</span>.,<span class="identifier">mehtod</span><span class="operator">=</span><span class="string">"rf"</span>,<span class="identifier">data</span><span class="operator">=</span><span class="identifier">training</span>,<span class="identifier">preProcess</span><span class="operator">=</span><span class="identifier">c</span><span class="paren">(</span><span class="string">"center"</span>,<span class="string">"scale"</span>,<span class="string">"pca"</span><span class="paren">)</span><span class="paren">)</span><span class="paren">)</span>
+<pre class="r"><code class="r"><span class="identifier">system.time</span><span class="paren">(</span><span class="identifier">modFit_rf</span><span class="operator">&lt;-</span><span class="identifier">train</span><span class="paren">(</span><span class="identifier">classe</span><span class="operator">~</span>.,<span class="identifier">method</span><span class="operator">=</span><span class="string">"rf"</span>,<span class="identifier">data</span><span class="operator">=</span><span class="identifier">training</span>,<span class="identifier">preProcess</span><span class="operator">=</span><span class="identifier">c</span><span class="paren">(</span><span class="string">"center"</span>,<span class="string">"scale"</span>,<span class="string">"pca"</span><span class="paren">)</span><span class="paren">)</span><span class="paren">)</span>
 <span class="comment">##    user  system elapsed </span>
-<span class="comment">## 3230.83   17.36 3254.26</span>
-<span class="identifier">modFit_rf</span><span class="operator">$</span><span class="identifier">finalModel</span>
+<span class="comment">## 3301.31   19.40 3332.25</span>
+<span class="identifier">modFit_rf</span>
+<span class="comment">## Random Forest </span>
 <span class="comment">## </span>
-<span class="comment">## Call:</span>
-<span class="comment">##  randomForest(x = x, y = y, mtry = param$mtry, mehtod = "rf") </span>
-<span class="comment">##                Type of random forest: classification</span>
-<span class="comment">##                      Number of trees: 500</span>
-<span class="comment">## No. of variables tried at each split: 2</span>
+<span class="comment">## 14718 samples</span>
+<span class="comment">##    52 predictor</span>
+<span class="comment">##     5 classes: 'A', 'B', 'C', 'D', 'E' </span>
 <span class="comment">## </span>
-<span class="comment">##         OOB estimate of  error rate: 2.28%</span>
-<span class="comment">## Confusion matrix:</span>
-<span class="comment">##      A    B    C    D    E class.error</span>
-<span class="comment">## A 4157    9   12    5    2 0.006690562</span>
-<span class="comment">## B   47 2766   28    1    6 0.028792135</span>
-<span class="comment">## C    4   38 2493   29    3 0.028827425</span>
-<span class="comment">## D    1    3   91 2311    6 0.041873964</span>
-<span class="comment">## E    0   16   18   17 2655 0.018847007</span></code></pre>
-<p>the in-sample error gives an accuracy of</p>
-<p>The third model is boostrap with trees</p>
-<pre class="r"><code class="r"><span class="identifier">system.time</span><span class="paren">(</span><span class="identifier">modFit_gmb</span><span class="operator">&lt;-</span><span class="identifier">train</span><span class="paren">(</span><span class="identifier">classe</span><span class="operator">~</span>.,<span class="identifier">mehtod</span><span class="operator">=</span><span class="string">"gmb"</span>,<span class="identifier">data</span><span class="operator">=</span><span class="identifier">training</span>,<span class="identifier">preProcess</span><span class="operator">=</span><span class="identifier">c</span><span class="paren">(</span><span class="string">"center"</span>,<span class="string">"scale"</span>,<span class="string">"pca"</span><span class="paren">)</span><span class="paren">)</span><span class="paren">)</span>
+<span class="comment">## Pre-processing: centered, scaled, principal component signal extraction </span>
+<span class="comment">## Resampling: Bootstrapped (25 reps) </span>
+<span class="comment">## Summary of sample sizes: 14718, 14718, 14718, 14718, 14718, 14718, ... </span>
+<span class="comment">## Resampling results across tuning parameters:</span>
+<span class="comment">## </span>
+<span class="comment">##   mtry  Accuracy   Kappa      Accuracy SD  Kappa SD   </span>
+<span class="comment">##    2    0.9645018  0.9551012  0.002874545  0.003618778</span>
+<span class="comment">##   27    0.9486177  0.9350100  0.005914001  0.007481343</span>
+<span class="comment">##   52    0.9483651  0.9346906  0.005563645  0.007036942</span>
+<span class="comment">## </span>
+<span class="comment">## Accuracy was used to select the optimal model using  the largest value.</span>
+<span class="comment">## The final value used for the model was mtry = 2.</span></code></pre>
+<p>the in-sample error gives an accuracy of 0.95</p>
+<p>The third model is Naive Bayes</p>
+<pre class="r"><code class="r"><span class="identifier">system.time</span><span class="paren">(</span><span class="identifier">modFit_nb</span><span class="operator">&lt;-</span><span class="identifier">train</span><span class="paren">(</span><span class="identifier">classe</span><span class="operator">~</span>.,<span class="identifier">method</span><span class="operator">=</span><span class="string">"nb"</span>,<span class="identifier">data</span><span class="operator">=</span><span class="identifier">training</span>,<span class="identifier">preProcess</span><span class="operator">=</span><span class="identifier">c</span><span class="paren">(</span><span class="string">"center"</span>,<span class="string">"scale"</span>,<span class="string">"pca"</span><span class="paren">)</span><span class="paren">)</span><span class="paren">)</span>
+<span class="comment">## Loading required package: klaR</span>
+<span class="comment">## Loading required package: MASS</span>
 <span class="comment">##    user  system elapsed </span>
-<span class="comment">## 3243.60   18.64 3269.05</span>
-<span class="identifier">modFit_gmb</span><span class="operator">$</span><span class="identifier">finalModel</span>
+<span class="comment">## 1168.55    1.61 1177.23</span>
+<span class="identifier">modFit_nb</span>
+<span class="comment">## Naive Bayes </span>
 <span class="comment">## </span>
-<span class="comment">## Call:</span>
-<span class="comment">##  randomForest(x = x, y = y, mtry = param$mtry, mehtod = "gmb") </span>
-<span class="comment">##                Type of random forest: classification</span>
-<span class="comment">##                      Number of trees: 500</span>
-<span class="comment">## No. of variables tried at each split: 2</span>
+<span class="comment">## 14718 samples</span>
+<span class="comment">##    52 predictor</span>
+<span class="comment">##     5 classes: 'A', 'B', 'C', 'D', 'E' </span>
 <span class="comment">## </span>
-<span class="comment">##         OOB estimate of  error rate: 2.26%</span>
-<span class="comment">## Confusion matrix:</span>
-<span class="comment">##      A    B    C    D    E class.error</span>
-<span class="comment">## A 4153    9   13    7    3 0.007646356</span>
-<span class="comment">## B   45 2764   29    0   10 0.029494382</span>
-<span class="comment">## C    3   39 2496   26    3 0.027658746</span>
-<span class="comment">## D    3    2   92 2307    8 0.043532338</span>
-<span class="comment">## E    0    9   15   16 2666 0.014781966</span></code></pre>
-<p>the in-sample error gives an accuracy of</p>
+<span class="comment">## Pre-processing: centered, scaled, principal component signal extraction </span>
+<span class="comment">## Resampling: Bootstrapped (25 reps) </span>
+<span class="comment">## Summary of sample sizes: 14718, 14718, 14718, 14718, 14718, 14718, ... </span>
+<span class="comment">## Resampling results across tuning parameters:</span>
+<span class="comment">## </span>
+<span class="comment">##   usekernel  Accuracy   Kappa      Accuracy SD  Kappa SD  </span>
+<span class="comment">##   FALSE      0.5331305  0.4161822  0.01675193   0.01753141</span>
+<span class="comment">##    TRUE      0.6392776  0.5459972  0.01037371   0.01241271</span>
+<span class="comment">## </span>
+<span class="comment">## Tuning parameter 'fL' was held constant at a value of 0</span>
+<span class="comment">## Accuracy was used to select the optimal model using  the largest value.</span>
+<span class="comment">## The final values used for the model were fL = 0 and usekernel = TRUE.</span></code></pre>
+<p>the in-sample error gives an accuracy fo 0.64<br>For accuracy, random forest performed better and it will be used for predictions.</p>
 </div>
 <div id="model-evaluation" class="section level3">
 <h3>Model evaluation</h3>
@@ -326,33 +336,7 @@ img {
 <span class="comment">## Detection Rate         0.2832   0.1866   0.1684   0.1588   0.1819</span>
 <span class="comment">## Detection Prevalence   0.2845   0.1935   0.1743   0.1639   0.1837</span>
 <span class="comment">## Balanced Accuracy      0.9910   0.9850   0.9728   0.9906   0.9939</span></code></pre>
-<p>The accuracy is and the most important variables are:</p>
-<pre class="r"><code class="r"><span class="identifier">varImp</span><span class="paren">(</span><span class="identifier">modFit_rf</span><span class="paren">)</span>
-<span class="comment">## rf variable importance</span>
-<span class="comment">## </span>
-<span class="comment">##   only 20 most important variables shown (out of 25)</span>
-<span class="comment">## </span>
-<span class="comment">##      Overall</span>
-<span class="comment">## PC8   100.00</span>
-<span class="comment">## PC14   85.06</span>
-<span class="comment">## PC12   82.86</span>
-<span class="comment">## PC1    82.36</span>
-<span class="comment">## PC5    68.60</span>
-<span class="comment">## PC3    67.03</span>
-<span class="comment">## PC15   64.96</span>
-<span class="comment">## PC9    60.28</span>
-<span class="comment">## PC6    55.56</span>
-<span class="comment">## PC2    53.23</span>
-<span class="comment">## PC16   48.36</span>
-<span class="comment">## PC22   45.01</span>
-<span class="comment">## PC17   44.46</span>
-<span class="comment">## PC7    43.42</span>
-<span class="comment">## PC4    40.13</span>
-<span class="comment">## PC10   39.19</span>
-<span class="comment">## PC21   38.99</span>
-<span class="comment">## PC13   37.95</span>
-<span class="comment">## PC25   35.89</span>
-<span class="comment">## PC20   31.80</span></code></pre>
+<p>The accuracy on a probing dataset (external of the training dataset) is .98</p>
 </div>
 <div id="generate-prediction-for-submission-on-test-dataset" class="section level3">
 <h3>Generate prediction for submission on test dataset</h3>
